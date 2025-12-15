@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -20,7 +20,8 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Database Setup
-const db = new sqlite3.Database('./backpack.db', (err) => {
+const dbPath = process.env.DB_PATH || './backpack.db';
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database', err);
     } else {
