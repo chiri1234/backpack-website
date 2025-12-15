@@ -121,20 +121,36 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
     const { name, phone, email, referralCode, originCity, travelDate } = req.body;
     const filename = req.file.filename;
 
-    const stmt = db.prepare(`INSERT INTO visitors 
-        (name, phone, email, referral_code_used, origin_city, travel_date, ticket_filename) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)`);
-
-    stmt.run([name, phone, email, referralCode, originCity, travelDate, filename], function (err) {
+    // VALIDATION: Check if referral code exists in locals table
+    db.get("SELECT id FROM locals WHERE referral_code = ?", [referralCode], (err, row) => {
         if (err) {
-            return res.status(500).json({ success: false, error: err.message });
+            return res.status(500).json({ success: false, error: "Database error" });
         }
-        res.json({
-            success: true,
-            message: 'Ticket uploaded successfully'
+
+        if (!row) {
+            // Invalid code: Delete the uploaded file to save space and return error
+            fs.unlink(path.join(uploadDir, filename), (err) => {
+                if (err) console.error("Error deleting file:", err);
+            });
+            return res.status(400).json({ success: false, error: "Invalid referral code. Please ask your friend for a valid code." });
+        }
+
+        // Code matches, proceed to save visitor
+        const stmt = db.prepare(`INSERT INTO visitors 
+            (name, phone, email, referral_code_used, origin_city, travel_date, ticket_filename) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)`);
+
+        stmt.run([name, phone, email, referralCode, originCity, travelDate, filename], function (err) {
+            if (err) {
+                return res.status(500).json({ success: false, error: err.message });
+            }
+            res.json({
+                success: true,
+                message: 'Ticket uploaded successfully'
+            });
         });
+        stmt.finalize();
     });
-    stmt.finalize();
 });
 
 // 3. Admin: Login
