@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backpack - Local Referral</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="page-body">
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">Backpack.</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="local-referral.html" class="active">Local Referral</a></li>
+                <li><a href="visitor.html">Visitor Verification</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container main-content">
+        <div class="form-card">
+            <h1 class="page-title">Generate Referral Code</h1>
+            <p class="page-subtitle">Invite your friends to Bangalore and earn rewards.</p>
+
+            <form id="localForm">
+                <div class="form-group">
+                    <label for="name">Full Name<span class="required">*</span></label>
+                    <input type="text" id="name" required placeholder="Ex. Rahul Verma">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number<span class="required">*</span></label>
+                    <input type="tel" id="phone" required placeholder="+91 98765 43210">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address<span class="required">*</span></label>
+                    <input type="email" id="email" required placeholder="rahul@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="pincode">Pincode<span class="required">*</span></label>
+                    <input type="text" id="pincode" required placeholder="560001" pattern="\d{6}" maxlength="6">
+                    <small style="color: #666; display: block; margin-top: 5px;">Enter your Bangalore pincode (560xxx,
+                        561xxx, or 562xxx)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" value="Bangalore" disabled class="disabled-input">
+                </div>
+
+                <button type="submit" class="btn btn-primary full-width">Generate Code</button>
+            </form>
+
+            <div id="resultArea" class="result-card hidden">
+                <div class="success-icon">🎉</div>
+                <h3>Your Referral Code</h3>
+                <div class="code-display" id="generatedCode">BKP-----</div>
+                <p>Share this code with your visiting friend.</p>
+
+                <div class="action-buttons">
+                    <button id="copyBtn" class="btn btn-outline small">Copy Code</button>
+                    <button id="whatsappBtn" class="btn btn-whatsapp small">Share on WhatsApp</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="disclaimer">
+        <p>Backpack is currently running a pilot program. Rewards are subject to verification and partner availability.
+        </p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

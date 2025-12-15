@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backpack - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="admin-body">
+
+    <!-- Login Modal -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <h2>Admin Login</h2>
+            <input type="text" id="adminUser" placeholder="Username">
+            <input type="password" id="adminPass" placeholder="Password">
+            <button id="adminLoginBtn" class="btn btn-primary full-width">Login</button>
+            <p id="loginError" class="error-msg hidden">Invalid Credentials</p>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="admin-dashboard hidden">
+        <header class="admin-header">
+            <div class="logo">Backpack Admin</div>
+            <button id="logoutBtn" class="btn btn-sm btn-outline">Logout</button>
+        </header>
+
+        <div class="container">
+            <!-- Tabs -->
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="visitors">Visitor Verifications</button>
+                <button class="tab-btn" data-tab="locals">Registered Locals</button>
+            </div>
+
+            <!-- Visitor Section -->
+            <div id="visitorsTab" class="tab-content">
+                <h2 class="section-title">Pending Verifications</h2>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Visitor</th>
+                                <th>Code Used</th>
+                                <th>Origin</th>
+                                <th>Date</th>
+                                <th>Ticket</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verificationTableBody">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Locals Section -->
+            <div id="localsTab" class="tab-content hidden">
+                <h2 class="section-title">Registered Locals</h2>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Pincode</th>
+                                <th>Referral Code</th>
+                                <th>Date Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="localsTableBody">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=3"></script>
+</body>
+
+</html>

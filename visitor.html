@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backpack - Visitor Verification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="page-body">
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">Backpack.</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="local-referral.html">Local Referral</a></li>
+                <li><a href="visitor.html" class="active">Visitor Verification</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container main-content">
+        <div class="form-card">
+            <h1 class="page-title">Verify Your Visit</h1>
+            <p class="page-subtitle">Upload your ticket to unlock city-wide discounts.</p>
+
+            <form id="visitorForm">
+                <div class="form-group">
+                    <label for="name">Full Name <span class="required">*</span></label>
+                    <input type="text" name="name" id="name" required placeholder="Ex. Sarah Jenkins">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" name="phone" id="phone" required placeholder="Your WhatsApp Number">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address <span class="required">*</span></label>
+                    <input type="email" name="email" id="email" required placeholder="sarah@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="referralCode">Referral Code (from Local) <span class="required">*</span></label>
+                    <input type="text" name="referralCode" id="referralCode" required placeholder="Ex. BKP123456"
+                        style="text-transform: uppercase;">
+                </div>
+
+                <div class="row-group">
+                    <div class="form-group">
+                        <label for="originCity">Origin City <span class="required">*</span></label>
+                        <input type="text" name="originCity" id="originCity" required placeholder="Ex. Mumbai">
+                    </div>
+                    <div class="form-group">
+                        <label>Destination</label>
+                        <select disabled class="disabled-input">
+                            <option>Bangalore</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="travelDate">Travel Date <span class="required">*</span></label>
+                    <input type="date" name="travelDate" id="travelDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticketFile">Upload Ticket (Image/PDF) <span class="required">*</span></label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" name="ticketFile" id="ticketFile" required accept="image/*,.pdf">
+                        <div class="file-custom-label">Choose File...</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary full-width">Submit for Verification</button>
+            </form>
+
+            <div id="successMessage" class="result-card hidden">
+                <div class="success-icon">✅</div>
+                <h3>Submission Received!</h3>
+                <p>We are verifying your ticket. You will receive a WhatsApp message with your discount code shortly.
+                </p>
+                <a href="index.html" class="btn btn-outline small">Back to Home</a>
+            </div>
+        </div>
+    </main>
+
+    <div class="disclaimer">
+        <p>Backpack is currently running a pilot program. Rewards are subject to verification and partner availability.
+        </p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
