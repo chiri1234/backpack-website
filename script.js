@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('generatedCode').innerText = result.referral_code;
 
                     // Setup WhatsApp Share
-                    const msg = `Use my referral code ${result.referral_code} to get Backpack discounts when you visit Bangalore.`;
+                    const msg = `Use my referral code ${result.referral_code} to get Backpack discounts when you visit Bangalore. Visit https://www.backpack.city`;
                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
                     document.getElementById('whatsappBtn').onclick = () => window.open(whatsappUrl, '_blank');
 
