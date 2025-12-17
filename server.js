@@ -12,6 +12,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static('.')); // Serve static files from current directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Explicitly serve uploads
 
 // Clean URL Routes
 app.get('/visitor', (req, res) => {
