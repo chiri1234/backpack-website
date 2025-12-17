@@ -390,6 +390,10 @@ p {
     text-decoration: none;
 }
 
+.footer-contact a[href^="mailto:"] {
+    text-decoration: underline;
+}
+
 .footer-contact a:hover {
     color: var(--color-black);
 }
