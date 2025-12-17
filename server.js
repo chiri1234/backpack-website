@@ -9,9 +9,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Ensure uploads directory exists BEFORE using it
-const uploadDir = './uploads';
+// Use /data volume (same as database) for persistence on Railway
+const uploadDir = process.env.UPLOAD_DIR || (process.env.DB_PATH ? '/data/uploads' : './uploads');
 if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // Middleware
