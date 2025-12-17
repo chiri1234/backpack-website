@@ -8,6 +8,12 @@ const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Ensure uploads directory exists BEFORE using it
+const uploadDir = './uploads';
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -35,11 +41,16 @@ app.get('/terms', (req, res) => {
     res.sendFile(path.join(__dirname, 'terms.html'));
 });
 
-// Ensure uploads directory exists
-const uploadDir = './uploads';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
+// Diagnostic endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        version: '1.0.2',
+        uploadsConfigured: true,
+        uploadsDirExists: fs.existsSync(uploadDir),
+        timestamp: new Date().toISOString()
+    });
+});
 
 // Database Setup
 const dbPath = process.env.DB_PATH || './backpack.db';
