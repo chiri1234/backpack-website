@@ -259,7 +259,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Show target
                 const targetId = tab.getAttribute('data-tab') + 'Tab';
-                document.getElementById(targetId).classList.remove('hidden');
+                const targetContent = document.getElementById(targetId);
+                if (targetContent) {
+                    targetContent.classList.remove('hidden');
+                } else {
+                    console.error('Target tab content not found:', targetId);
+                }
             });
         });
     }
@@ -280,8 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 let actions = '-';
                 if (row.verification_status === 'pending') {
                     // Use data attributes for safety
-                    const cleanName = row.name.replace(/"/g, '&quot;');
-                    const cleanPhone = row.phone.replace(/"/g, '&quot;');
+                    const cleanName = (row.name || '').replace(/"/g, '&quot;');
+                    const cleanPhone = (row.phone || '').replace(/"/g, '&quot;');
 
                     actions = `
                         <button class="btn-approve verify-btn" 
@@ -371,14 +376,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         cleanPhone = '91' + cleanPhone;
                     }
 
-                    const message = `Hello ${name}, your Backpack verification is successful! Here is your discount code. Enjoy Bangalore!`;
+                    const message = `Hello ${name}, your Backpack verification is successful! Here is your reward details. Enjoy Bangalore!`;
                     const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
 
                     // Force location update
                     waWindow.location.assign(whatsappUrl);
                 } else if (waWindow) {
-                    waWindow.close(); // Close if logic falls through (unlikely)
+                    waWindow.close();
                 }
+
+                // Show success message AFTER action
+                // alert(result.visitor_msg || result.msg || `Visitor ${action}d!`); 
+                // Using non-blocking log instead or rely on button state change if we had it.
+                // For now, reloading data is enough visual feedback, but let's log it.
+                console.log(`Visitor ${action}d!`);
 
                 loadDashboardData(); // Refresh table
             } else {
