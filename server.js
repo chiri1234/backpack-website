@@ -13,6 +13,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('.')); // Serve static files from current directory
 
+// Clean URL Routes
+app.get('/visitor', (req, res) => {
+    res.sendFile(path.join(__dirname, 'visitor.html'));
+});
+
+app.get('/local-referral', (req, res) => {
+    res.sendFile(path.join(__dirname, 'local-referral.html'));
+});
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // Ensure uploads directory exists
 const uploadDir = './uploads';
 if (!fs.existsSync(uploadDir)) {
