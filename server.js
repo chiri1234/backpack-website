@@ -94,7 +94,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 // Multer Setup
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/')
+        cb(null, uploadDir)
     },
     filename: function (req, file, cb) {
         // Sanitize filename and prepend timestamp
