@@ -412,6 +412,7 @@ p {
 
 .footer-links a:hover {
     color: var(--color-black);
+    text-decoration: underline;
 }
 
 /* --- New Page Styles --- */
