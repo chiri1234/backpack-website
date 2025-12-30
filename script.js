@@ -123,6 +123,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Visitor Upload Page Logic
     const visitorForm = document.getElementById('visitorForm');
     if (visitorForm) {
+        // Date Validation Logic - Prevent Past Dates
+        const travelDateInput = document.getElementById('travelDate');
+        const returnDateInput = document.getElementById('returnDate');
+
+        // Get today's date in YYYY-MM-DD format
+        const getTodayString = () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        // Set minimum date to today for travel date
+        if (travelDateInput) {
+            travelDateInput.setAttribute('min', getTodayString());
+
+            // When travel date changes, update minimum return date
+            travelDateInput.addEventListener('change', (e) => {
+                const travelDate = e.target.value;
+                if (returnDateInput && travelDate) {
+                    returnDateInput.setAttribute('min', travelDate);
+
+                    // Clear return date if it's before the new travel date
+                    if (returnDateInput.value && returnDateInput.value < travelDate) {
+                        returnDateInput.value = '';
+                    }
+                }
+            });
+        }
+
+        // Set minimum date to today for return date initially
+        if (returnDateInput) {
+            returnDateInput.setAttribute('min', getTodayString());
+
+            // Validate return date when changed
+            returnDateInput.addEventListener('change', (e) => {
+                const returnDate = e.target.value;
+                const travelDate = travelDateInput?.value;
+
+                if (returnDate && travelDate && returnDate < travelDate) {
+                    alert('Return date cannot be before travel date!');
+                    returnDateInput.value = '';
+                }
+            });
+        }
+
         // File input label update
         const fileInput = document.getElementById('ticketFile');
         fileInput.addEventListener('change', (e) => {

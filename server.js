@@ -15,7 +15,18 @@ if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Middleware
+// Middleware to redirect non-www to www for SEO consistency
+app.use((req, res, next) => {
+    const host = req.get('host');
+
+    // In production, redirect backpack.city to www.backpack.city
+    if (host === 'backpack.city') {
+        return res.redirect(301, `https://www.backpack.city${req.url}`);
+    }
+
+    next();
+});
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static('.')); // Serve static files from current directory
@@ -81,6 +92,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 referral_code_used TEXT,
                 origin_city TEXT,
                 travel_date TEXT,
+                return_date TEXT,
                 ticket_filename TEXT,
                 verification_status TEXT DEFAULT 'pending',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -151,8 +163,8 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
     }
 
     // visitorForm uses FormData with these field names:
-    // name, phone, email, referralCode, originCity, travelDate
-    const { name, phone, email, referralCode, originCity, travelDate } = req.body;
+    // name, phone, email, referralCode, originCity, travelDate, returnDate (optional)
+    const { name, phone, email, referralCode, originCity, travelDate, returnDate } = req.body;
     const filename = req.file.filename;
 
     // VALIDATION: Check if referral code exists in locals table
@@ -171,10 +183,10 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
 
         // Code matches, proceed to save visitor
         const stmt = db.prepare(`INSERT INTO visitors 
-            (name, phone, email, referral_code_used, origin_city, travel_date, ticket_filename) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)`);
+            (name, phone, email, referral_code_used, origin_city, travel_date, return_date, ticket_filename) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
 
-        stmt.run([name, phone, email, referralCode, originCity, travelDate, filename], function (err) {
+        stmt.run([name, phone, email, referralCode, originCity, travelDate, returnDate || null, filename], function (err) {
             if (err) {
                 return res.status(500).json({ success: false, error: err.message });
             }
