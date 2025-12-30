@@ -370,6 +370,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     dateDisplay = `<span class="date-invalid">🔴 ${row.travel_date}</span><br><small style="color: #d32f2f;">(${diffDays > 0 ? '+' : ''}${diffDays} days)</small>`;
                 }
 
+                // Return date display
+                const returnDateDisplay = row.return_date
+                    ? `<span style="color: #666;">${row.return_date}</span>`
+                    : `<small style="color: #999;">Not specified</small>`;
+
                 tr.innerHTML = `
                     <td>
                         <strong>${row.name}</strong><br>
@@ -378,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${row.referral_code_used || 'N/A'}</td>
                     <td>${row.origin_city}</td>
                     <td>${dateDisplay}</td>
+                    <td>${returnDateDisplay}</td>
                     <td><a href="/uploads/${row.ticket_filename}" target="_blank" style="text-decoration:underline; color:blue;">View Ticket</a></td>
                     <td>${statusBadge}</td>
                     <td>${actions}</td>
