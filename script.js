@@ -221,17 +221,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         visitorForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // 1. File Size Validation
+            const fileInput = document.getElementById('ticketFile');
+            if (fileInput.files[0] && fileInput.files[0].size > 5 * 1024 * 1024) { // 5MB limit
+                alert("File is too large. Please upload an image/PDF smaller than 5MB.");
+                return; // Stop here
+            }
+
             const btn = visitorForm.querySelector('button');
+            const originalText = btn.innerText;
             btn.innerText = 'Uploading...';
             btn.disabled = true;
 
             const formData = new FormData(visitorForm);
 
+            // 2. Setup Timeout (15 seconds)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
             try {
                 const res = await fetch('/api/visitors/upload', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    signal: controller.signal // Link abort signal
                 });
+                clearTimeout(timeoutId); // Success, cancel timeout
 
                 // Check if response is OK (status 200-299)
                 if (!res.ok) {
@@ -264,7 +279,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (err) {
                 console.error('Upload error:', err);
-                alert('Failed to upload ticket. Please check your internet connection and try again.');
+
+                // 3. Handle Timeout specifically
+                if (err.name === 'AbortError') {
+                    alert('Upload timed out. Your connection might be slow or the file is too large. Please try compessing your image/PDF.');
+                } else {
+                    alert('Failed to upload ticket. Please check your internet connection and try again.');
+                }
+
                 btn.innerText = 'Submit for Verification';
                 btn.disabled = false;
             }
