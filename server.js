@@ -66,11 +66,9 @@ function addLog(msg) {
 // Diagnostic endpoint
 app.get('/api/health', (req, res) => {
     addLog("Health check requested");
-    // Check DB
     db.get("SELECT count(*) as count FROM locals", (err, row) => {
         const dbStatus = err ? `Error: ${err.message}` : `OK (${row ? row.count : 0} locals)`;
 
-        // Check Disk Write
         let diskStatus = 'Checking...';
         try {
             const testFile = path.join(uploadDir, `test-${Date.now()}.txt`);
@@ -81,16 +79,22 @@ app.get('/api/health', (req, res) => {
             diskStatus = `Not Writable: ${e.message}`;
         }
 
-        res.json({
-            status: 'Online',
-            startTime,
-            timestamp: new Date().toISOString(),
-            checks: {
-                database: dbStatus,
-                uploadDir: uploadDir,
-                diskWrite: diskStatus
-            },
-            logs: requestLogs.slice(-10) // Send last 10 logs
+        // Schema Check
+        db.all("PRAGMA table_info(visitors)", (err, columns) => {
+            const schema = err ? `Error: ${err.message}` : columns.map(c => c.name).join(', ');
+
+            res.json({
+                status: 'Online',
+                startTime,
+                timestamp: new Date().toISOString(),
+                checks: {
+                    database: dbStatus,
+                    uploadDir: uploadDir,
+                    diskWrite: diskStatus,
+                    visitors_schema: schema
+                },
+                logs: requestLogs.slice(-20) // Show more logs
+            });
         });
     });
 });
@@ -269,27 +273,22 @@ app.post('/api/visitors/upload', (req, res, next) => {
             });
         }
 
-        addLog("POST /api/visitors/upload: Code valid, inserting visitor...");
-        // Code matches, proceed to save visitor
-        const stmt = db.prepare(`INSERT INTO visitors 
-            (name, phone, email, referral_code_used, origin_city, travel_date, return_date, ticket_filename) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+        addLog("POST /api/visitors/upload: Code valid, preparing insertion...");
 
-        stmt.run([name, phone, email, referralCode, originCity, travelDate, returnDate || null, filename], function (err) {
+        const insertQuery = `INSERT INTO visitors 
+            (name, phone, email, referral_code_used, origin_city, travel_date, return_date, ticket_filename) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        const params = [name, phone, email, referralCode, originCity, travelDate, returnDate || null, filename];
+
+        addLog(`POST /api/visitors/upload: Executing db.run...`);
+        db.run(insertQuery, params, function (err) {
             if (err) {
                 addLog(`POST /api/visitors/upload: DB insertion error: ${err.message}`);
-                return res.status(500).json({
-                    success: false,
-                    error: err.message
-                });
+                return res.status(500).json({ success: false, error: err.message });
             }
             addLog(`POST /api/visitors/upload: Success! ID: ${this.lastID}`);
-            res.json({
-                success: true,
-                message: 'Ticket uploaded successfully'
-            });
+            res.json({ success: true, message: 'Ticket uploaded successfully' });
         });
-        stmt.finalize();
     });
 });
 
