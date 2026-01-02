@@ -159,7 +159,7 @@ app.post('/api/locals/register', (req, res) => {
 // 2. Visitors: Upload Ticket
 app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
     if (!req.file) {
-        return res.status(400).json({ success: false, error: 'No file uploaded' });
+        return res.status(400).json({ success: false, error: 'No file uploaded. Please select a ticket image or PDF.' });
     }
 
     // visitorForm uses FormData with these field names:
@@ -167,10 +167,23 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
     const { name, phone, email, referralCode, originCity, travelDate, returnDate } = req.body;
     const filename = req.file.filename;
 
+    // Validate required fields
+    if (!name || !phone || !email || !referralCode || !originCity || !travelDate) {
+        // Clean up uploaded file
+        fs.unlink(path.join(uploadDir, filename), (err) => {
+            if (err) console.error("Error deleting file:", err);
+        });
+        return res.status(400).json({
+            success: false,
+            error: 'Missing required fields. Please fill out all required information.'
+        });
+    }
+
     // VALIDATION: Check if referral code exists in locals table
     db.get("SELECT id FROM locals WHERE referral_code = ?", [referralCode], (err, row) => {
         if (err) {
-            return res.status(500).json({ success: false, error: "Database error" });
+            console.error("Database error during referral code validation:", err);
+            return res.status(500).json({ success: false, error: "Database error. Please try again in a moment." });
         }
 
         if (!row) {
@@ -178,7 +191,10 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
             fs.unlink(path.join(uploadDir, filename), (err) => {
                 if (err) console.error("Error deleting file:", err);
             });
-            return res.status(400).json({ success: false, error: "Invalid referral code. Please ask your friend for a valid code." });
+            return res.status(400).json({
+                success: false,
+                error: "Invalid referral code. This code doesn't exist or may have been deleted. Please verify with your friend."
+            });
         }
 
         // Code matches, proceed to save visitor
@@ -188,7 +204,11 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
 
         stmt.run([name, phone, email, referralCode, originCity, travelDate, returnDate || null, filename], function (err) {
             if (err) {
-                return res.status(500).json({ success: false, error: err.message });
+                console.error("Database error during visitor insertion:", err);
+                return res.status(500).json({
+                    success: false,
+                    error: `Failed to save submission: ${err.message}`
+                });
             }
             res.json({
                 success: true,

@@ -232,18 +232,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     body: formData
                 });
+
+                // Check if response is OK (status 200-299)
+                if (!res.ok) {
+                    // Try to parse error message from response
+                    let errorMessage = 'Failed to submit. Please try again.';
+                    try {
+                        const errorData = await res.json();
+                        errorMessage = errorData.error || errorMessage;
+                    } catch {
+                        // If JSON parsing fails, use status text
+                        errorMessage = `Server error (${res.status}): ${res.statusText}`;
+                    }
+                    alert('Error: ' + errorMessage);
+                    btn.innerText = 'Submit for Verification';
+                    btn.disabled = false;
+                    return;
+                }
+
                 const result = await res.json();
 
                 if (result.success) {
                     visitorForm.classList.add('hidden');
                     document.getElementById('successMessage').classList.remove('hidden');
                 } else {
-                    alert('Error: ' + result.error);
+                    // Provide a default error message if result.error is undefined
+                    const errorMessage = result.error || 'Submission failed. Please check your information and try again.';
+                    alert('Error: ' + errorMessage);
+                    btn.innerText = 'Submit for Verification';
+                    btn.disabled = false;
                 }
             } catch (err) {
-                console.error(err);
-                alert('Failed to upload ticket. Server might be down.');
-            } finally {
+                console.error('Upload error:', err);
+                alert('Failed to upload ticket. Please check your internet connection and try again.');
                 btn.innerText = 'Submit for Verification';
                 btn.disabled = false;
             }
