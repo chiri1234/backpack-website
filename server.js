@@ -149,7 +149,18 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 ticket_filename TEXT,
                 verification_status TEXT DEFAULT 'pending',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )`);
+            )`, () => {
+                // Migration: Add return_date if it's missing (for older databases)
+                db.all("PRAGMA table_info(visitors)", (err, columns) => {
+                    if (!err && columns) {
+                        const hasReturnDate = columns.some(c => c.name === 'return_date');
+                        if (!hasReturnDate) {
+                            console.log('Migrating: Adding return_date column to visitors table');
+                            db.run("ALTER TABLE visitors ADD COLUMN return_date TEXT");
+                        }
+                    }
+                });
+            });
 
             // Initial Admin User (Mock auth for MVP, or just hardcoded in route)
         });
