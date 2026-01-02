@@ -1,0 +1,25 @@
+
+=== Database Path: ./backpack.db ===
+
+1. Searching for EXACT match: "BP-DC102K"
+   Γ¥î NOT FOUND with exact match
+
+2. Searching for CASE-INSENSITIVE match:
+   Γ¥î NOT FOUND (case-insensitive)
+
+3. Searching for codes containing "DC102":
+   Γ¥î No similar codes found
+
+4. ALL Referral Codes in Database:
+   Total: 5 entries
+   1. BP-LTEDAA - Test User (+91 6375037587) [ID: 5]
+   2. BP-55YEE2 - Test User (9876543210) [ID: 4]
+   3. BP-IQX0PU - Rohit test (9876543210) [ID: 3]
+   4. BP-HS2GTB - Priya Sharma (9123456789) [ID: 2]
+   5. BP-5LEC9L - Antigravity Test (9876543210) [ID: 1]
+
+5. Checking if "BP-DC102K" was USED by any visitor:
+   Γä╣∩╕Å  Code has NOT been used yet
+
+=== Check Complete ===
+
