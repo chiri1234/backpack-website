@@ -55,12 +55,31 @@ app.get('/terms', (req, res) => {
 
 // Diagnostic endpoint
 app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'OK',
-        version: '1.0.2',
-        uploadsConfigured: true,
-        uploadsDirExists: fs.existsSync(uploadDir),
-        timestamp: new Date().toISOString()
+    // Check DB
+    db.get("SELECT count(*) as count FROM locals", (err, row) => {
+        const dbStatus = err ? `Error: ${err.message}` : `OK (${row ? row.count : 0} locals)`;
+
+        // Check Disk Write
+        let diskStatus = 'Checking...';
+        try {
+            const testFile = path.join(uploadDir, `test-${Date.now()}.txt`);
+            fs.writeFileSync(testFile, 'write-test');
+            fs.unlinkSync(testFile);
+            diskStatus = 'Writable';
+        } catch (e) {
+            diskStatus = `Not Writable: ${e.message}`;
+        }
+
+        res.json({
+            status: 'Online',
+            environment: process.env.NODE_ENV || 'dev',
+            timestamp: new Date().toISOString(),
+            checks: {
+                database: dbStatus,
+                uploadDir: uploadDir,
+                diskWrite: diskStatus
+            }
+        });
     });
 });
 
@@ -158,6 +177,7 @@ app.post('/api/locals/register', (req, res) => {
 
 // 2. Visitors: Upload Ticket
 app.post('/api/visitors/upload', (req, res, next) => {
+    console.log(`[${new Date().toISOString()}] Upload request received. Starting Multer...`);
     // Wrap multer in a standard middleware to catch upstream errors (like disk full, limits)
     upload.single('ticketFile')(req, res, (err) => {
         if (err) {
