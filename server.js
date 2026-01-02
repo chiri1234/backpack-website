@@ -157,7 +157,17 @@ app.post('/api/locals/register', (req, res) => {
 });
 
 // 2. Visitors: Upload Ticket
-app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
+app.post('/api/visitors/upload', (req, res, next) => {
+    // Wrap multer in a standard middleware to catch upstream errors (like disk full, limits)
+    upload.single('ticketFile')(req, res, (err) => {
+        if (err) {
+            console.error('Multer upload error:', err);
+            return res.status(400).json({ success: false, error: `Upload failed: ${err.message}` });
+        }
+        next();
+    });
+}, (req, res) => {
+    // If we're here, Multer succeeded (or failed silently but next() was called)
     if (!req.file) {
         return res.status(400).json({ success: false, error: 'No file uploaded. Please select a ticket image or PDF.' });
     }
@@ -166,6 +176,8 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
     // name, phone, email, referralCode, originCity, travelDate, returnDate (optional)
     const { name, phone, email, referralCode, originCity, travelDate, returnDate } = req.body;
     const filename = req.file.filename;
+
+    console.log(`Processing upload for ${name} (${phone}) - Code: ${referralCode}`);
 
     // Validate required fields
     if (!name || !phone || !email || !referralCode || !originCity || !travelDate) {
@@ -187,6 +199,7 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
         }
 
         if (!row) {
+            console.log(`Invalid referral code used: ${referralCode}`);
             // Invalid code: Delete the uploaded file to save space and return error
             fs.unlink(path.join(uploadDir, filename), (err) => {
                 if (err) console.error("Error deleting file:", err);
@@ -210,6 +223,7 @@ app.post('/api/visitors/upload', upload.single('ticketFile'), (req, res) => {
                     error: `Failed to save submission: ${err.message}`
                 });
             }
+            console.log(`Successfully registered visitor: ${name} [ID: ${this.lastID}]`);
             res.json({
                 success: true,
                 message: 'Ticket uploaded successfully'
@@ -285,6 +299,24 @@ app.post('/api/admin/verify-action', (req, res) => {
     });
 });
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error('Unhandled app error:', err);
+    res.status(500).json({ success: false, error: 'Internal Server Error (Logged)' });
+});
+
+// Process-level error handlers to prevent crashes
+process.on('uncaughtException', (err) => {
+    console.error('CRITICAL: Uncaught Exception:', err);
+    // In production, you might want to exit, but for debugging we'll keep it alive if possible or let Railway restart it
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('CRITICAL: Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
+    console.log(`Uploads directory: ${uploadDir}`);
+    console.log(`Database path: ${dbPath}`);
 });
