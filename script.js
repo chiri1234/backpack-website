@@ -395,7 +395,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (phone.startsWith('0')) phone = phone.substring(1);
                     if (phone.length === 10) phone = '91' + phone;
 
-                    const msg = `Hello ${row.name}, your Backpack verification is successful! Enjoy Bangalore!`;
+                    const msg = `Hello ${row.name},
+Thanks for being an early user of Backpack. Your visit has been successfully verified and your reward will be sent to this number shortly.
+
+Hope your time in Bengaluru is full of good food, good conversations, and great memories.
+
+Namaskāra Bengaluru!
+
+https://www.backpack.city/images/reward-confirmed.jpg`;
                     const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
                     actions = `<a href="${waLink}" target="_blank" class="btn-approve" style="text-decoration:none;">📱 Message</a>`;
                 }
@@ -477,7 +484,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         cleanPhone = '91' + cleanPhone;
                     }
 
-                    const message = `Hello ${name}, your Backpack verification is successful! Here is your reward details. Enjoy Bangalore!`;
+                    const message = `Hello ${name},
+Thanks for being an early user of Backpack. Your visit has been successfully verified and your reward will be sent to this number shortly.
+
+Hope your time in Bengaluru is full of good food, good conversations, and great memories.
+
+Namaskāra Bengaluru!
+
+https://www.backpack.city/images/reward-confirmed.jpg`;
                     const whatsappUrl = `https://wa.me/${cleanPhone}/?text=${encodeURIComponent(message)}`;
 
                     // Force location update
