@@ -391,9 +391,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (row.verification_status === 'approved') {
                     // Add WhatsApp Message button for approved users
                     let phone = row.phone.replace(/\D/g, '');
+                    // Handle leading zero if present
+                    if (phone.startsWith('0')) phone = phone.substring(1);
                     if (phone.length === 10) phone = '91' + phone;
+
                     const msg = `Hello ${row.name}, your Backpack verification is successful! Enjoy Bangalore!`;
-                    const waLink = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+                    const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
                     actions = `<a href="${waLink}" target="_blank" class="btn-approve" style="text-decoration:none;">📱 Message</a>`;
                 }
 
@@ -466,6 +469,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // WhatsApp Automation on Approve
                 if (action === 'approve' && phone && waWindow) {
                     let cleanPhone = phone.replace(/\D/g, ''); // Remove non-digits
+                    // Handle leading zero
+                    if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
 
                     // Logic: If phone is 10 digits (e.g. 9876543210), assume India (+91)
                     if (cleanPhone.length === 10) {
@@ -473,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     const message = `Hello ${name}, your Backpack verification is successful! Here is your reward details. Enjoy Bangalore!`;
-                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+                    const whatsappUrl = `https://wa.me/${cleanPhone}/?text=${encodeURIComponent(message)}`;
 
                     // Force location update
                     waWindow.location.assign(whatsappUrl);
