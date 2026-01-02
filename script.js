@@ -236,9 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const formData = new FormData(visitorForm);
 
-            // 2. Setup Timeout (15 seconds)
+            // 2. Setup Timeout (30 seconds)
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
 
             try {
                 const res = await fetch('/api/visitors/upload', {

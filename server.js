@@ -53,8 +53,19 @@ app.get('/terms', (req, res) => {
     res.sendFile(path.join(__dirname, 'terms.html'));
 });
 
+// 1. Diagnostics & Health
+const startTime = new Date().toISOString();
+let requestLogs = [];
+function addLog(msg) {
+    const entry = `[${new Date().toISOString()}] ${msg}`;
+    console.log(entry);
+    requestLogs.push(entry);
+    if (requestLogs.length > 100) requestLogs.shift(); // Keep last 100
+}
+
 // Diagnostic endpoint
 app.get('/api/health', (req, res) => {
+    addLog("Health check requested");
     // Check DB
     db.get("SELECT count(*) as count FROM locals", (err, row) => {
         const dbStatus = err ? `Error: ${err.message}` : `OK (${row ? row.count : 0} locals)`;
@@ -72,15 +83,34 @@ app.get('/api/health', (req, res) => {
 
         res.json({
             status: 'Online',
-            environment: process.env.NODE_ENV || 'dev',
+            startTime,
             timestamp: new Date().toISOString(),
             checks: {
                 database: dbStatus,
                 uploadDir: uploadDir,
                 diskWrite: diskStatus
-            }
+            },
+            logs: requestLogs.slice(-10) // Send last 10 logs
         });
     });
+});
+
+// Mock upload to test DB/Disk without Multer
+app.get('/api/debug/test-db-write', (req, res) => {
+    addLog("DEBUG: Starting test DB write...");
+    const testCode = 'BP-DEBUG-' + Math.floor(Math.random() * 1000);
+    const stmt = db.prepare("INSERT INTO locals (name, phone, email, pincode, referral_code) VALUES (?, ?, ?, ?, ?)");
+    stmt.run(['Test User', '0000', 'test@test.com', '000', testCode], function (err) {
+        if (err) {
+            addLog(`DEBUG ERROR: DB Write failed: ${err.message}`);
+            return res.status(500).json({ success: false, error: err.message });
+        }
+        addLog(`DEBUG: DB Write success, ID: ${this.lastID}`);
+        // Cleanup
+        db.run("DELETE FROM locals WHERE id = ?", [this.lastID]);
+        res.json({ success: true, message: "DB Write is fast", code: testCode });
+    });
+    stmt.finalize();
 });
 
 // Database Setup
@@ -177,59 +207,69 @@ app.post('/api/locals/register', (req, res) => {
 
 // 2. Visitors: Upload Ticket
 app.post('/api/visitors/upload', (req, res, next) => {
-    console.log(`[${new Date().toISOString()}] Upload request received. Starting Multer...`);
+    addLog("POST /api/visitors/upload: Request received");
+
+    // Manual timeout for the upload stream
+    const uploadTimeout = setTimeout(() => {
+        addLog("POST /api/visitors/upload: Multer processing TIMEOUT reached (10s)");
+    }, 10000);
+
     // Wrap multer in a standard middleware to catch upstream errors (like disk full, limits)
     upload.single('ticketFile')(req, res, (err) => {
+        clearTimeout(uploadTimeout);
         if (err) {
-            console.error('Multer upload error:', err);
+            addLog(`POST /api/visitors/upload: Multer error: ${err.message}`);
             return res.status(400).json({ success: false, error: `Upload failed: ${err.message}` });
         }
+        addLog("POST /api/visitors/upload: Multer finished parsing");
         next();
     });
 }, (req, res) => {
     // If we're here, Multer succeeded (or failed silently but next() was called)
-    if (!req.file) {
-        return res.status(400).json({ success: false, error: 'No file uploaded. Please select a ticket image or PDF.' });
-    }
-
     // visitorForm uses FormData with these field names:
     // name, phone, email, referralCode, originCity, travelDate, returnDate (optional)
     const { name, phone, email, referralCode, originCity, travelDate, returnDate } = req.body;
-    const filename = req.file.filename;
+    addLog(`POST /api/visitors/upload: Validating code ${referralCode} for ${name}`);
 
-    console.log(`Processing upload for ${name} (${phone}) - Code: ${referralCode}`);
+    if (!req.file) {
+        addLog("POST /api/visitors/upload: No file in request");
+        return res.status(400).json({ success: false, error: 'No file uploaded.' });
+    }
+    const filename = req.file.filename;
 
     // Validate required fields
     if (!name || !phone || !email || !referralCode || !originCity || !travelDate) {
+        addLog("POST /api/visitors/upload: Validation failed (missing fields)");
         // Clean up uploaded file
         fs.unlink(path.join(uploadDir, filename), (err) => {
             if (err) console.error("Error deleting file:", err);
         });
         return res.status(400).json({
             success: false,
-            error: 'Missing required fields. Please fill out all required information.'
+            error: 'Missing fields.'
         });
     }
 
     // VALIDATION: Check if referral code exists in locals table
     db.get("SELECT id FROM locals WHERE referral_code = ?", [referralCode], (err, row) => {
         if (err) {
-            console.error("Database error during referral code validation:", err);
-            return res.status(500).json({ success: false, error: "Database error. Please try again in a moment." });
+            addLog(`POST /api/visitors/upload: DB error during validation: ${err.message}`);
+            return res.status(500).json({ success: false, error: "DB Error" });
         }
 
         if (!row) {
-            console.log(`Invalid referral code used: ${referralCode}`);
+            addLog(`POST /api/visitors/upload: Invalid code result for ${referralCode}`);
             // Invalid code: Delete the uploaded file to save space and return error
             fs.unlink(path.join(uploadDir, filename), (err) => {
                 if (err) console.error("Error deleting file:", err);
             });
             return res.status(400).json({
                 success: false,
-                error: "Invalid referral code. This code doesn't exist or may have been deleted. Please verify with your friend."
+                error: "Invalid code"
             });
         }
 
+        addLog("POST /api/visitors/upload: Code valid, inserting visitor...");
         // Code matches, proceed to save visitor
         const stmt = db.prepare(`INSERT INTO visitors 
             (name, phone, email, referral_code_used, origin_city, travel_date, return_date, ticket_filename) 
@@ -237,13 +277,13 @@ app.post('/api/visitors/upload', (req, res, next) => {
 
         stmt.run([name, phone, email, referralCode, originCity, travelDate, returnDate || null, filename], function (err) {
             if (err) {
-                console.error("Database error during visitor insertion:", err);
+                addLog(`POST /api/visitors/upload: DB insertion error: ${err.message}`);
                 return res.status(500).json({
                     success: false,
-                    error: `Failed to save submission: ${err.message}`
+                    error: err.message
                 });
             }
-            console.log(`Successfully registered visitor: ${name} [ID: ${this.lastID}]`);
+            addLog(`POST /api/visitors/upload: Success! ID: ${this.lastID}`);
             res.json({
                 success: true,
                 message: 'Ticket uploaded successfully'
